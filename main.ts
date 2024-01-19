@@ -33,18 +33,28 @@ export default class MyPlugin extends Plugin {
 		//const statusBarItemEl = this.addStatusBarItem();
 		//statusBarItemEl.setText('Status Bar Text');
 
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'gen-vcf-modal',
-			name: 'genVCF modal',
+			id: 'new-contact',
+			name: 'create new contact note',
+			callback: () => {
+				const nullcontact = new VCARD()
+				const fp=normalizePath(this.settings.ContactsFolder+`/Contact ${findNextFileNumber(this.settings.ContactsFolder, this.app.vault)}.md`)
+				const ctt="---\n"+nullcontact.toyaml()+"\n---\n"
+				this.app.vault.create(fp,ctt)
+    			.then(createdFile => this.app.workspace.getLeaf().openFile(createdFile,{active: true}));
+				new Notice('new contact successfully created')
+			}
+		});
+		this.addCommand({
+			id: 'gen-vcf',
+			name: 'generate VCF',
 			callback: () => {
 				new GenerateVCFModal(this.app,this.settings.ContactsFolder).open();
 			}
 		});
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'load-vcf-modal',
-			name: 'loadvcf modal',
+			id: 'load-vcf',
+			name: 'load VCF',
 			callback: () => {
 				new LoadVCFModal(this.app,this.settings.ContactsFolder).open();
 			}
@@ -176,8 +186,9 @@ class GenerateVCFModal extends Modal {
 					//console.log(writeVCF2(yaml_obj))
 					vault.append(ofile,VCARD.stringify(yaml_obj)||"");
 				})
-				//.catch((rej) => {console.log("error reading "+file.path)});
+				.catch((rej) => {console.log("error reading "+file.path)});
 			})
+			new Notice(ofile.path + " successfully generated");
 		});
 		
 	}
@@ -266,6 +277,8 @@ class LoadVCFModal extends Modal {
 					vault.append(file, "# "+e.name+"\n"+e.toyaml()+"\n\n\n")
 				});
 			})
+
+			new Notice(ifile.path + " successfully loaded");
 		})
 
 		//TODO
@@ -350,10 +363,38 @@ class SettingTab extends PluginSettingTab {
 function formatDate(date : Date) { 
 	return date.toISOString().replace('T', '_').replaceAll('-', '').replaceAll(':','').substring(0, 13);
 }
+function findNextFileNumber(folderPath: string, vault: Vault) {
+	const folder = vault.getAbstractFileByPath(
+	  normalizePath(folderPath)
+	) as TFolder;
+  
+	let nextNumber = 0;
+	Vault.recurseChildren(folder, (contactNote) => {
+	  if (!(contactNote instanceof TFile)) {
+		return;
+	  }
+	  const name = contactNote.basename;
+	  const regex = /Contact(?<number>\s\d+)*/g;
+	  for (const match of name.matchAll(regex)) {
+		if (!match.groups || !match.groups.number) {
+		  if (nextNumber === 0) {
+			nextNumber = 1;
+		  }
+		  continue;
+		}
+		const currentNumberString = match.groups.number.trim();
+		if (currentNumberString != undefined && currentNumberString !== "") {
+		  const currentNumber = parseInt(currentNumberString);
+		  nextNumber = Math.max(nextNumber, (currentNumber + 1));
+		}
+	  }
+	});
+	return nextNumber === 0 ? "" : nextNumber.toString();
+  }
 
 class VCARD{
-	name: string;
-	dname : VCARD_name;
+	name: string="";
+	dname : VCARD_name= new VCARD_name();
 	birthday: string;
 	tel: string[]=[];
 	email: string[]=[];
@@ -514,12 +555,12 @@ class VCARD{
 	}
 }
 class VCARD_name{
-	prefix: string;	//3
-	first: string;	//1
-	mid: string;	//2
-	last: string;	//0
-	suffix: string;	//4
-	constructor(sa:string[]){
+	prefix: string="";	//3
+	first: string="";	//1
+	mid: string="";		//2
+	last: string="";	//0
+	suffix: string="";	//4
+	constructor(sa:string[]=["","","","",""]){
 		//console.log(" constructing dname")
 		this.last = sa[0]
 		this.first= sa[1]
