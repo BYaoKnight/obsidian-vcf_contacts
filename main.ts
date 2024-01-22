@@ -203,7 +203,7 @@ class GenerateVCFModal extends Modal {
 
 class LoadVCFModal extends Modal {
 	ofolderpath: string;
-	ifilename: string="vcf/test0.vcf";
+	ifilename: string="vcf/.vcf";
 
 	constructor(app: App, ofolder:string) {
 		super(app);
@@ -254,7 +254,7 @@ class LoadVCFModal extends Modal {
 		const vault = this.app.vault;
 		vault.cachedRead(ifile)
 		.then((res)=> {
-			let doublons:VCARD[]=[];
+						let doublons:VCARD[]=[];
 			VCARD.parse(res).forEach(c => {
 				let ofile = c.name +".md"
 				let path=normalizePath(folder.path+"/"+ofile)
@@ -412,18 +412,19 @@ class VCARD{
 		nl:"\n"
 	}
 	static parse(str:string){
-		let objs: VCARD[] =[]
+				let objs: VCARD[] =[]
 		let obj:VCARD= new VCARD();
-		let lines = str.split("\n")
+		let lines = str.split(/\r?\n/)
 		let crt=-1,nxt=0;
-		for (let j=0; j < lines.length; j++) {
+				for (let j=0; j < lines.length; j++) {
 			if((crt+1)==nxt){
 				if(lines[j]   == VCARD.STR.begin
 				&& lines[++j] == VCARD.STR.version){crt++;obj= new VCARD();}
 				continue
 			}
 			if(crt == nxt){
-				const line = lines[j];
+				let line = lines[j];
+				while(line.endsWith("=")){line=line.slice(0,-1) +lines[++j]}
 				const val= line.split(":")[1]
 				if(line == VCARD.STR.end){nxt++;objs.push(obj);continue}
 				if(line.startsWith("FN")){
