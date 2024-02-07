@@ -380,7 +380,7 @@ function findNextFileNumber(folderPath: string, vault: Vault) {
 	  }
 	});
 	return nextNumber === 0 ? "" : nextNumber.toString();
-  }
+}
 
 class VCARD{
 	name: string="";
@@ -459,7 +459,7 @@ class VCARD{
 	
 		return objs;
 	}
-	static stringify(obj: any){
+	static stringify(obj: any):string{
 		let s ="";
 	
 		if(!obj.name ||obj.name===""){return "";}
@@ -482,7 +482,7 @@ class VCARD{
 		if(obj.tel){
 			if(obj.tel instanceof Object){
 				for (const [k, v] of Object.entries(obj.tel)) {
-					if(typeof v != "string" && typeof v !="number"){return;}
+					if(typeof v != "string" && typeof v !="number"){return"";}
 					s+=VCARD.STR.tel+":"+v+"\n"
 				}
 			}else{
