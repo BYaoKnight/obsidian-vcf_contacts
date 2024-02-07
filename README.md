@@ -4,6 +4,7 @@ Obsidian Plugin for creating contact notes from vcf file and vice-versa.
 # Roadmap
 - [X] adding notices on loading/generation done
 - [X] create empty contact note
+- [X] generate vcf for current contact note
 - [ ] merging duplicates
 
 # Development and Maintenance

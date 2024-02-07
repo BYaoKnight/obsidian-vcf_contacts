@@ -1,7 +1,7 @@
 {
 	"id": "vcf_contacts",
 	"name": "vcf_contacts",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"minAppVersion": "0.15.0",
 	"description": "create contact notes from vcf files, and vice-versa",
 	"author": "BJL",
