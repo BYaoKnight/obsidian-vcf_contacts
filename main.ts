@@ -174,19 +174,9 @@ class GenerateVCFModal extends Modal {
 				let output_content: string;
 				if(!(file instanceof TFile)
 				|| file.extension != "md"){return;}
-				vault.cachedRead(file)
-				.then((res) => {
-					if (res.substring(0,4) !=="---\n"){return;}//file has no frontmatter
-					//console.log(file.path + " success");
-					let file_content: string= res.split("---\n",2)[1];
-					// file_content contains all and only the yaml frontmatter
-					let yaml_obj = parseYaml(file_content);
-					//console.log(yaml_obj)
-					//console.log(VCARD.stringify(yaml_obj))
-					//console.log(writeVCF2(yaml_obj))
-					vault.append(ofile,VCARD.stringify(yaml_obj)||"");
-				})
-				.catch((rej) => {console.log("error reading "+file.path)});
+				let fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
+				if(fm === undefined) {return;}
+				vault.append(ofile,VCARD.stringify(fm)||"");
 			})
 			new Notice(ofile.path + " successfully generated");
 		});
