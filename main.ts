@@ -46,6 +46,25 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 		this.addCommand({
+			id: 'contact-vcf',
+			name: 'create vcf for current contact note',
+			checkCallback: (checking: boolean) => {
+				let vault=this.app.vault
+				const f = this.app.workspace.getActiveFile() ;
+				if(!(f instanceof TFile)) return false;
+				const file=f;
+				const fa = this.app.metadataCache.getFileCache(file)?.frontmatter;
+				if(fa !== undefined)
+				console.log(fa)
+				const data = VCARD.stringify(fa,checking)
+				if(data === "") return false;
+				if(checking) return true
+				const ofp= normalizePath(this.settings.ContactsFolder+"/vcf/"+file.basename+".vcf")
+				this.app.vault.create(ofp,data)
+				new Notice('new vCard Contact File successfully created at '+ ofp)
+			}
+		});
+		this.addCommand({
 			id: 'gen-vcf',
 			name: 'generate VCF',
 			callback: () => {
@@ -459,12 +478,13 @@ class VCARD{
 	
 		return objs;
 	}
-	static stringify(obj: any):string{
+	static stringify(obj: any, check: boolean = false):string{
 		let s ="";
 	
 		if(!obj.name ||obj.name===""){return "";}
 		if((!obj.tel   ||obj.tel==="")
 		 &&(!obj.email ||obj.email==="")){return "";}
+		if(check) {return " "}
 
 		if(!obj.dname || obj.dname===""){
 			s= "N"+VCARD.STR.utf8+VCARD.printUTF8(obj.name)
